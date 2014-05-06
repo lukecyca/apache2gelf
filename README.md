@@ -1,68 +1,44 @@
 apache2gelf
 ===========
 
-A set of python scripts to deliver Apache and PHP log files to graylog2. Scripts support the following log files:
-* standard Apache 2.2 error log (errorlog2gelf.py);
-* custom (but quite close to standard 'combined') Apache access log (accesslog2gelf.py);
-* standard PHP error log (phplog2gelf.py).
+A script to deliver Apache log files to graylog2 in GELF format over UDP.
 
-Requirements:
-* python-argparse
-* python-graypy (0.2.8+)
+Supports:
+* Standard Apache error log format
+* Standard Apache combined (or vhost_combined) access log;
 
 Usage example
 -------------
-
-For Apache with mod_php:
 
     <VirtualHost *:80>
       ServerName example.com
       DocumentRoot /var/www/example.com
 
-      ErrorLog "|| /path/to/errorlog2gelf.py --vhost example.com"
-      CustomLog "|| /path/to/accesslog2gelf.py --vhost example.com" "%V %h %u \"%r\" %>s %b \"%{Referer}i\""
-      php_admin_value error_log "/var/log/php/example.com.php.log"
+      ErrorLog "|| /path/to/apache2gelf.py --format error --vhost example.com"
+      CustomLog "|| /path/to/apache2gelf.py --format combined --vhost example.com" combined
     </VirtualHost>
 
-phplog2gelf.py basically does 'tail -F', so it should be executed separately:
 
-    /path/to/phplog2gelf.py --vhost example.com /var/log/php/example.com.php.log
+Importing existing logs
+-----------------------
+
+    gunzip -c other_vhosts_access.log.9.gz | python apache2gelf.py --format vhost_combined
+
 
 Command line parameters
 -----------------------
 
-All scripts understand the following command line parameters:
-* `--localname` to specify a custom hostname
-* `--host` to specify graylog2 server
+* `--hostname` to specify a custom hostname
+* `--server` to specify graylog2 server
 * `--port` to specify graylog2 GELF port
-* `--facility` to specify log facility
-* `--vhost` to add an extra field called 'vhost' to all log messages. This allows you to configure per-virtualhost log handlers (on the expense of running N additional processes, of course) and then filter logs in graylog2 accordingly.
-
-accesslog2gelf.py
------------------
-
-The script has log format hard-coded into it, so if you would like to change the CustomLog fields or resulting log messages, just hack it.
-
-errorlog2gelf.py
-----------------
-
-The script outputs all messages to stdout. This allows you to have a local log file as well (you can only have one ErrorLog parameter in Apache configuration)
-
-phplog2gelf.py
---------------
-
-This script is somewhat different from the previous two. Because there is no way to get log messages from php via pipe, we have to 'tail -F' the log file. The script supports multiline PHP error log messages as well.
-
-You should launch `phplog2gelf.py` separately - just stick it into your rc.local file. If you have a Debian/Ubuntu system you can also use the following *monit* configuration:
-
-    check process phplog2gelf_example with pidfile /var/run/phplog2gelf_example.pid
-        start program = "/sbin/start-stop-daemon --start --pidfile /var/run/phplog2gelf_example.pid --user www-data --chuid www-data --background --make-pidfile --exec /usr/local/sbin/phplog2gelf.py -- --vhost example.com /var/log/php/example.com.php.log"
-        stop program = "/sbin/start-stop-daemon --stop --pidfile /var/run/phplog2gelf_example.pid --verbose"
+* `--format` specify one of `combined`, `vhost_combined`, `error`
+* `--vhost` to add an extra field called 'vhost' to all log messages. This allows you to configure per-virtualhost log handlers. If using `vhost_combined` access format, this will be overridden.
 
 Credits
 =======
 
-Copyright (c) 2012, Anton Tolchanov
+Based off the original, Copyright (c) 2012, Anton Tolchanov
+Modifications Copyright (c) 2014, Luke Cyca
 
 The scripts are licensed under MIT license.
 
