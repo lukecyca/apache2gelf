@@ -6,6 +6,7 @@ import socket
 import zlib
 import json
 from datetime import timedelta, datetime, tzinfo
+import time
 
 
 #: Maximum chunk size of UDP packet
@@ -151,6 +152,8 @@ def main():
         else:
             zmessage = zlib.compress(json.dumps(record))
             s.sendto(zmessage, (args.server, args.port))
+
+        time.sleep(0.025)
 
     s.close()
 

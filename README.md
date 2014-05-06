@@ -22,7 +22,7 @@ Usage example
 Importing existing logs
 -----------------------
 
-    gunzip -c other_vhosts_access.log.9.gz | python apache2gelf.py --format vhost_combined
+    gunzip -c other_vhosts_access.log.9.gz | python apache2gelf.py --format vhost_combined --tcp
 
 
 Command line parameters
@@ -33,11 +33,13 @@ Command line parameters
 * `--port` to specify graylog2 GELF port
 * `--format` specify one of `combined`, `vhost_combined`, `error`
 * `--vhost` to add an extra field called 'vhost' to all log messages. This allows you to configure per-virtualhost log handlers. If using `vhost_combined` access format, this will be overridden.
+* `--tcp` Use tcp instead of udp
 
 Credits
 =======
 
 Based off the original, Copyright (c) 2012, Anton Tolchanov
+
 Modifications Copyright (c) 2014, Luke Cyca
 
 The scripts are licensed under MIT license.
